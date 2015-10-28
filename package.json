@@ -1,0 +1,25 @@
+{
+  "name": "circle-jacoco-badge",
+  "version": "1.0.0",
+  "description": "Generate coverage badges for Jacoco test reports on CircleCI",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/vivin/circle-jacoco-badge.git"
+  },
+  "keywords": [
+    "coverage",
+    "jacoco",
+    "badge",
+    "circle-ci"
+  ],
+  "author": "Vivin Paliath",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/vivin/circle-jacoco-badge/issues"
+  },
+  "homepage": "https://github.com/vivin/circle-jacoco-badge#readme"
+}

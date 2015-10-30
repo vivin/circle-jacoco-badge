@@ -15,7 +15,7 @@ var params = null;
 
 function handleRequest(httpRequest, httpResponse) {
     try {
-        console.log("[INFO]", httpRequest.url);
+        console.log("[INFO]", httpRequest.url, "from", httpRequest.headers.referer);
         dispatcher.dispatch(httpRequest, httpResponse);
     } catch(err) {
         console.log("[ERROR]", err);

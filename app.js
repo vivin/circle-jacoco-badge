@@ -4,7 +4,7 @@ var request = require("request");
 var xml2js = require("xml2js");
 var Canvas = require("canvas");
 
-const PORT = 8443;
+const PORT = (process.env.PORT || 5000);
 const CIRCLE_CI_URL = "https://circleci.com/api/v1/project";
 const AUTHOR = "author";
 const PROJECT = "project";

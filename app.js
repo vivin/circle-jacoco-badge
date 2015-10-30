@@ -36,7 +36,7 @@ dispatcher.onGet("/badge", function(httpRequest, httpResponse) {
     console.log("[INF0] Received parameters:", JSON.stringify(params));
 
     if(params[AUTHOR] && params[PROJECT] && params[CIRCLE_TOKEN]) {
-        var latest_build_url = CIRCLE_CI_URL + "/" + params[AUTHOR] + "/" + params[PROJECT] + "?" + CIRCLE_TOKEN + "=" + params[CIRCLE_TOKEN] + "&limit=1&filter=successful";
+        var latest_build_url = CIRCLE_CI_URL + "/" + params[AUTHOR] + "/" + params[PROJECT] + "/tree/master/?" + CIRCLE_TOKEN + "=" + params[CIRCLE_TOKEN] + "&limit=1&filter=successful";
 
         request({
             url: latest_build_url,
@@ -70,7 +70,7 @@ dispatcher.onGet("/report", function(httpRequest, httpResponse) {
     console.log("[INF0] Received parameters:", JSON.stringify(params));
 
     if(params[AUTHOR] && params[PROJECT] && params[CIRCLE_TOKEN]) {
-        var latest_build_url = CIRCLE_CI_URL + "/" + params[AUTHOR] + "/" + params[PROJECT] + "?" + CIRCLE_TOKEN + "=" + params[CIRCLE_TOKEN] + "&limit=1&filter=successful";
+        var latest_build_url = CIRCLE_CI_URL + "/" + params[AUTHOR] + "/" + params[PROJECT] + "/tree/master/?" + CIRCLE_TOKEN + "=" + params[CIRCLE_TOKEN] + "&limit=1&filter=successful";
 
         request({
             url: latest_build_url,

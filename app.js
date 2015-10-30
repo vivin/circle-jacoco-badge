@@ -16,7 +16,7 @@ var params = null;
 
 function handleRequest(httpRequest, httpResponse) {
     try {
-        console.log("[INFO]", httpRequest.url, "from", httpRequest.headers.referer);
+        console.log("[INFO]", httpRequest.url, "from", httpRequest.headers.referer, httpRequest.headers.origin);
         dispatcher.dispatch(httpRequest, httpResponse);
     } catch(err) {
         console.log("[ERROR]", err);
@@ -31,7 +31,7 @@ function handleRequest(httpRequest, httpResponse) {
     }
 }
 
-dispatcher.onGet("/badge", function(httpRequest, httpResponse) {
+dispatcher.onGet("/coverage-badge", function(httpRequest, httpResponse) {
     params = url.parse(httpRequest.url, true).query;
     console.log("[INF0] Received parameters:", JSON.stringify(params));
 
@@ -64,7 +64,7 @@ dispatcher.onGet("/badge", function(httpRequest, httpResponse) {
     }
 });
 
-dispatcher.onGet("/report", function(httpRequest, httpResponse) {
+dispatcher.onGet("/coverage-report", function(httpRequest, httpResponse) {
     params = url.parse(httpRequest.url, true).query;
     console.log("[INF0] Received parameters:", JSON.stringify(params));
 

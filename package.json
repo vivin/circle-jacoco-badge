@@ -25,6 +25,7 @@
   "homepage": "https://github.com/vivin/circle-jacoco-badge#readme",
   "dependencies": {
     "canvas": "^1.3.0",
+    "httpdispatcher": "^0.4.0",
     "request": "^2.65.0",
     "xml2js": "^0.4.13"
   }

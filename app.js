@@ -1,4 +1,5 @@
 var http = require("http");
+var dispatcher = require("httpdispatcher");
 var url = require("url");
 var request = require("request");
 var xml2js = require("xml2js");
@@ -13,8 +14,18 @@ const CIRCLE_TOKEN = "circle-token";
 var params = null;
 
 function handleRequest(httpRequest, httpResponse) {
+    try {
+        console.log("[INFO]", httpRequest.url);
+        dispatcher.dispatch(httpRequest, httpResponse);
+    } catch(err) {
+        console.log("[ERROR]", err);
+        httpResponse.end(generateBadge({}, true), "binary");
+    }
+}
+
+dispatcher.onGet("/badge", function(httpRequest, httpResponse) {
     params = url.parse(httpRequest.url, true).query;
-    console.log("[INF0] Received request: " + JSON.stringify(params));
+    console.log("[INF0] Received parameters:", JSON.stringify(params));
 
     if(params[AUTHOR] && params[PROJECT] && params[CIRCLE_TOKEN]) {
         var latest_build_url = CIRCLE_CI_URL + "/" + params[AUTHOR] + "/" + params[PROJECT] + "?" + CIRCLE_TOKEN + "=" + params[CIRCLE_TOKEN] + "&limit=1&filter=successful";
@@ -22,9 +33,9 @@ function handleRequest(httpRequest, httpResponse) {
         request({
             url: latest_build_url,
             json: true
-        }, function(error, response, body) {
+        }, function(error, response, builds) {
             if(!error && response.statusCode === 200) {
-                getBadge(body, function(badge) {
+                getBadge(builds[0], function(badge) {
                     httpResponse.writeHead(200, {
                         'Content-Type': 'image/png'
                     });
@@ -38,35 +49,66 @@ function handleRequest(httpRequest, httpResponse) {
             }
         });
     }
-}
+});
 
-function getBadge(builds, callback) {
-    var artifact_url = CIRCLE_CI_URL + "/" + params[AUTHOR] + "/" + params[PROJECT] + "/" + builds[0].build_num + "/artifacts?" + CIRCLE_TOKEN + "=" + params[CIRCLE_TOKEN];
-    request({
-        url: artifact_url,
-        json: true
-    }, function(error, response, body) {
-        if(!error && response.statusCode === 200) {
-            handleArtifacts(body, function(testReport) {
-                callback(testReport);
-            });
-        }
+dispatcher.onGet("/report", function(httpRequest, httpResponse) {
+    params = url.parse(httpRequest.url, true).query;
+    console.log("[INF0] Received parameters:", JSON.stringify(params));
+
+    if(params[AUTHOR] && params[PROJECT] && params[CIRCLE_TOKEN]) {
+        var latest_build_url = CIRCLE_CI_URL + "/" + params[AUTHOR] + "/" + params[PROJECT] + "?" + CIRCLE_TOKEN + "=" + params[CIRCLE_TOKEN] + "&limit=1&filter=successful";
+
+        request({
+            url: latest_build_url,
+            json: true
+        }, function(error, response, builds) {
+            if(!error && response.statusCode === 200) {
+                getReport(builds[0], function(reportUrl) {
+                    httpResponse.writeHead(302, {
+                        'Location': reportUrl
+                    });
+                    httpResponse.end();
+                });
+            } else {
+                httpResponse.end("Unable to find report: " + error + ", status-code: " + response.statusCode);
+            }
+        });
+    }
+});
+
+function getReport(build, callback) {
+    processArtifact(/html\/index\.html/, build, function(artifact) {
+        callback(artifact.url);
     });
 }
 
-function handleArtifacts(artifacts, callback) {
-    artifacts.forEach(function(artifact) {
-        if(/jacocoTestReport.xml$/.test(artifact.path)) {
-            request({
-                url: artifact.url + "?" + CIRCLE_TOKEN + "=" + params[CIRCLE_TOKEN]
-            }, function(error, response, body) {
-                xml2js.parseString(body, function(err, result) {
-                    result.report.counter.forEach(function(element) {
-                        if(element.$.type === "INSTRUCTION") {
-                            callback(generateBadge(element.$, false));
-                        }
-                    });
+function getBadge(build, callback) {
+    processArtifact(/jacocoTestReport\.xml$/, build, function(artifact) {
+        request({
+            url: artifact.url + "?" + CIRCLE_TOKEN + "=" + params[CIRCLE_TOKEN]
+        }, function(error, response, body) {
+            xml2js.parseString(body, function(err, result) {
+                result.report.counter.forEach(function(element) {
+                    if(element.$.type === "INSTRUCTION") {
+                        callback(generateBadge(element.$, false));
+                    }
                 });
+            });
+        });
+    });
+}
+
+function processArtifact(artifactPattern, build, callback) {
+    var artifact_url = CIRCLE_CI_URL + "/" + params[AUTHOR] + "/" + params[PROJECT] + "/" + build.build_num + "/artifacts?" + CIRCLE_TOKEN + "=" + params[CIRCLE_TOKEN];
+    request({
+        url: artifact_url,
+        json: true
+    }, function(error, response, artifacts) {
+        if(!error && response.statusCode === 200) {
+            artifacts.forEach(function(artifact) {
+                if(artifactPattern.test(artifact.path)) {
+                    callback(artifact);
+                }
             });
         }
     });

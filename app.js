@@ -1,5 +1,6 @@
 var http = require("http");
 var dispatcher = require("httpdispatcher");
+var etag = require('etag');
 var url = require("url");
 var request = require("request");
 var xml2js = require("xml2js");
@@ -19,7 +20,14 @@ function handleRequest(httpRequest, httpResponse) {
         dispatcher.dispatch(httpRequest, httpResponse);
     } catch(err) {
         console.log("[ERROR]", err);
-        httpResponse.end(generateBadge({}, true), "binary");
+
+        var badge = generateBadge({}, true);
+        httpResponse.writeHead(500, {
+            'Content-Type': 'image/png',
+            'Cache-Control': 'no-cache',
+            'Etag': etag(badge)
+        });
+        httpResponse.end(badge, "binary");
     }
 }
 
@@ -37,15 +45,20 @@ dispatcher.onGet("/badge", function(httpRequest, httpResponse) {
             if(!error && response.statusCode === 200) {
                 getBadge(builds[0], function(badge) {
                     httpResponse.writeHead(200, {
-                        'Content-Type': 'image/png'
+                        'Content-Type': 'image/png',
+                        'Cache-Control': 'no-cache',
+                        'Etag': etag(badge)
                     });
                     httpResponse.end(badge, "binary");
                 });
             } else {
-                httpResponse.writeHead(200, {
-                    'Content-Type': 'image/png'
+                var badge = generateBadge({}, true);
+                httpResponse.writeHead(400, {
+                    'Content-Type': 'image/png',
+                    'Cache-Control': 'no-cache',
+                    'Etag': etag(badge)
                 });
-                httpResponse.end(generateBadge({}, true), "binary");
+                httpResponse.end(badge, "binary");
             }
         });
     }

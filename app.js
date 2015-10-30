@@ -17,7 +17,8 @@ function handleRequest(httpRequest, httpResponse) {
     console.log("[INF0] Received request: " + JSON.stringify(params));
 
     if(params[AUTHOR] && params[PROJECT] && params[CIRCLE_TOKEN]) {
-        var latest_build_url = CIRCLE_CI_URL + "/" + params[AUTHOR] + "/" + params[PROJECT] + "?" + CIRCLE_TOKEN + "=" + params[CIRCLE_TOKEN] + "&limit=1";
+        var latest_build_url = CIRCLE_CI_URL + "/" + params[AUTHOR] + "/" + params[PROJECT] + "?" + CIRCLE_TOKEN + "=" + params[CIRCLE_TOKEN] + "&limit=1&filter=successful";
+
         request({
             url: latest_build_url,
             json: true
@@ -134,10 +135,10 @@ function generateBadge(coverage, error) {
     context.fillText("coverage", 3.5, 12);
 
     if(!error) {
-        context.font = "600 8pt sans-serif";
+        context.font = "600 7.5pt sans-serif";
         context.fillText(percentage + "%", 62, 12.5);
     } else {
-        context.font = "bold 8pt sans-serif";
+        context.font = "bold 7.5pt sans-serif";
         context.fillText("??%", 62, 12.5);
     }
 

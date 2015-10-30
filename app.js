@@ -16,7 +16,7 @@ var params = null;
 
 function handleRequest(httpRequest, httpResponse) {
     try {
-        console.log("[INFO]", httpRequest.url, "from", httpRequest.headers.referer, httpRequest.headers.origin);
+        console.log("[INFO]", httpRequest.url, "from", httpRequest.headers.referer);
         dispatcher.dispatch(httpRequest, httpResponse);
     } catch(err) {
         console.log("[ERROR]", err);
@@ -31,7 +31,7 @@ function handleRequest(httpRequest, httpResponse) {
     }
 }
 
-dispatcher.onGet("/coverage-badge", function(httpRequest, httpResponse) {
+dispatcher.onGet("/badge", function(httpRequest, httpResponse) {
     params = url.parse(httpRequest.url, true).query;
     console.log("[INF0] Received parameters:", JSON.stringify(params));
 
@@ -47,9 +47,10 @@ dispatcher.onGet("/coverage-badge", function(httpRequest, httpResponse) {
                     httpResponse.writeHead(200, {
                         'Content-Type': 'image/png',
                         'Cache-Control': 'no-cache',
-                        'Etag': etag(badge)
+                        'Etag': etag(badge.image),
+                        'Last-Modified': new Date(Date.parse(badge.stopTime)).toUTCString()
                     });
-                    httpResponse.end(badge, "binary");
+                    httpResponse.end(badge.image, "binary");
                 });
             } else {
                 var badge = generateBadge({}, true);
@@ -64,7 +65,7 @@ dispatcher.onGet("/coverage-badge", function(httpRequest, httpResponse) {
     }
 });
 
-dispatcher.onGet("/coverage-report", function(httpRequest, httpResponse) {
+dispatcher.onGet("/report", function(httpRequest, httpResponse) {
     params = url.parse(httpRequest.url, true).query;
     console.log("[INF0] Received parameters:", JSON.stringify(params));
 
@@ -103,7 +104,10 @@ function getBadge(build, callback) {
             xml2js.parseString(body, function(err, result) {
                 result.report.counter.forEach(function(element) {
                     if(element.$.type === "INSTRUCTION") {
-                        callback(generateBadge(element.$, false));
+                        callback({
+                            image: generateBadge(element.$, false),
+                            stopTime: build.stop_time
+                        });
                     }
                 });
             });

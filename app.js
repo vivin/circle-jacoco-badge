@@ -33,6 +33,22 @@ function handleRequest(httpRequest, httpResponse) {
 }
 
 dispatcher.onGet("/badge", function(httpRequest, httpResponse) {
+    getRequestHandler(httpRequest, httpResponse, "line");
+});
+
+dispatcher.onGet("/line", function(httpRequest, httpResponse) {
+    getRequestHandler(httpRequest, httpResponse, "line");
+});
+
+dispatcher.onGet("/branch", function(httpRequest, httpResponse) {
+    getRequestHandler(httpRequest, httpResponse, "branch");
+});
+
+dispatcher.onGet("/complexity", function(httpRequest, httpResponse) {
+    getRequestHandler(httpRequest, httpResponse, "complexity");
+});
+
+function getRequestHandler(httpRequest, httpResponse, badgeType) {
     params = url.parse(httpRequest.url, true).query;
     console.log("[INF0] Received parameters:", JSON.stringify(params));
 
@@ -44,7 +60,7 @@ dispatcher.onGet("/badge", function(httpRequest, httpResponse) {
             json: true
         }, function(error, response, builds) {
             if(!error && response.statusCode === 200) {
-                getBadge(params[TYPE] || "line", builds[0], function(badge) {
+                getBadge(badgeType, builds[0], function(badge) {
                     httpResponse.writeHead(200, {
                         'Content-Type': 'image/png',
                         'Cache-Control': 'no-cache',
@@ -64,7 +80,7 @@ dispatcher.onGet("/badge", function(httpRequest, httpResponse) {
             }
         });
     }
-});
+}
 
 dispatcher.onGet("/report", function(httpRequest, httpResponse) {
     params = url.parse(httpRequest.url, true).query;

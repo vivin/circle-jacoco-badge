@@ -176,7 +176,7 @@ function generateBadge(type, counters, error) {
 
             metric = Math.round((covered / (covered + missed)) * 100);
 
-            if(metric >= 70 && metric < 85) {
+            if(metric >= 70 && metric < 80) {
                 color = "orange";
             } else if(metric >= 60 && metric < 70) {
                 color = "darkorange";

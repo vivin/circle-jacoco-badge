@@ -174,7 +174,7 @@ function generateBadge(type, counters, error) {
             var covered = parseInt(counters[type].covered, 10);
             var missed = parseInt(counters[type].missed, 10);
 
-            metric = Math.round((covered / (covered + missed)) * 100) + "%";
+            metric = Math.round((covered / (covered + missed)) * 100);
 
             if(metric >= 70 && metric < 85) {
                 color = "orange";
@@ -183,6 +183,8 @@ function generateBadge(type, counters, error) {
             } else if (metric < 60) {
                 color = "darkred";
             }
+
+            metric += "%";
         } else if(type === "COMPLEXITY") {
             coverageType = "complexity";
             var totalComplexity = parseInt(counters[type].missed, 10) + parseInt(counters[type].covered, 10);

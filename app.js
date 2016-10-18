@@ -151,6 +151,7 @@ function processArtifact(artifactPattern, build, callback) {
 }
 
 function generateBadge(type, counters, error) {
+    error = typeof counters[type] === "undefined";
     type = (type === "line") ? "INSTRUCTION" : (type === "branch") ? "BRANCH" : (type === "complexity") ? "COMPLEXITY": "INSTRUCTION";
 
     var diff = (type === "INSTRUCTION" || type == "BRANCH") ? 0 : (type === "COMPLEXITY") ? 10 : 0;

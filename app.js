@@ -22,11 +22,12 @@ function handleRequest(httpRequest, httpResponse) {
     } catch(err) {
         console.log("[ERROR]", err);
 
-        var badge = generateBadge({}, true);
+        var badge = generateBadge("", {}, true);
         httpResponse.writeHead(500, {
             'Content-Type': 'image/png',
             'Cache-Control': 'no-cache',
-            'Etag': etag(badge)
+            'Etag': etag(badge),
+            'Last-Modified': new Date().toUTCString()
         });
         httpResponse.end(badge, "binary");
     }
@@ -70,12 +71,13 @@ function getRequestHandler(httpRequest, httpResponse, badgeType) {
                     httpResponse.end(badge.image, "binary");
                 });
             } else {
-                console.log("[ERROR] Unable to retrieve coverage-artifact from CircleCI. " + JSON.stringify(response));
+                console.log("[ERROR] Unable to retrieve coverage-artifact from CircleCI; status=" + response.statusCode + ", message=" + response.body.message);
                 var badge = generateBadge("", {}, true);
                 httpResponse.writeHead(400, {
                     'Content-Type': 'image/png',
                     'Cache-Control': 'no-cache',
-                    'Etag': etag(badge)
+                    'Etag': etag(badge),
+                    'Last-Modified': new Date().toUTCString()
                 });
                 httpResponse.end(badge, "binary");
             }

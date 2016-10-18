@@ -70,7 +70,7 @@ function getRequestHandler(httpRequest, httpResponse, badgeType) {
                     httpResponse.end(badge.image, "binary");
                 });
             } else {
-                var badge = generateBadge({}, true);
+                var badge = generateBadge("", {}, true);
                 httpResponse.writeHead(400, {
                     'Content-Type': 'image/png',
                     'Cache-Control': 'no-cache',

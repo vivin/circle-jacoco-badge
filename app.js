@@ -111,13 +111,13 @@ dispatcher.onGet("/report", function(httpRequest, httpResponse) {
 });
 
 function getReport(build, callback) {
-    processArtifact(/html\/index\.html/, build, function(artifact) {
+    processArtifact("html/index.html", build, function(artifact) {
         callback(artifact.url);
     });
 }
 
 function getBadge(type, build, callback) {
-    processArtifact(/jacocoTestReport\.xml$/, build, function(artifact) {
+    processArtifact("jacocoTestReport.xml", build, function(artifact) {
         request({
             url: artifact.url + "?" + CIRCLE_TOKEN + "=" + params[CIRCLE_TOKEN]
         }, function(error, response, body) {
@@ -137,18 +137,24 @@ function getBadge(type, build, callback) {
     });
 }
 
-function processArtifact(artifactPattern, build, callback) {
+function processArtifact(artifactName, build, callback) {
     var artifact_url = CIRCLE_CI_URL + "/" + params[AUTHOR] + "/" + params[PROJECT] + "/" + build.build_num + "/artifacts?" + CIRCLE_TOKEN + "=" + params[CIRCLE_TOKEN];
     request({
         url: artifact_url,
         json: true
     }, function(error, response, artifacts) {
         if(!error && response.statusCode === 200) {
-            artifacts.forEach(function(artifact) {
-                if(artifactPattern.test(artifact.path)) {
-                    callback(artifact);
+            var artifact = null
+            artifacts.some(function(_artifact) {
+                var match = _artifact.path.indexOf(artifactName) >= 0;
+                if(match) {
+                   artifact = _artifact;
                 }
+
+                return match;
             });
+
+            callback(artifact);
         }
     });
 }

@@ -11,6 +11,8 @@ const CIRCLE_CI_URL = "https://circleci.com/api/v1/project";
 const AUTHOR = "author";
 const PROJECT = "project";
 const CIRCLE_TOKEN = "circle-token";
+const COVERAGE_FILE = "coverage-file";
+const REPORT_FILE = "report-file";
 const TYPE = "type";
 
 var params = null;
@@ -53,6 +55,8 @@ function getRequestHandler(httpRequest, httpResponse, badgeType) {
     params = url.parse(httpRequest.url, true).query;
     console.log("[INF0] Received parameters:", JSON.stringify(params));
 
+    params[COVERAGE_FILE] = params[COVERAGE_FILE] || "build/reports/jacoco/test/jacocoTestReport.xml";
+
     if(params[AUTHOR] && params[PROJECT] && params[CIRCLE_TOKEN]) {
         var latest_build_url = CIRCLE_CI_URL + "/" + params[AUTHOR] + "/" + params[PROJECT] + "/tree/master/?" + CIRCLE_TOKEN + "=" + params[CIRCLE_TOKEN] + "&limit=1&filter=successful";
 
@@ -89,6 +93,8 @@ dispatcher.onGet("/report", function(httpRequest, httpResponse) {
     params = url.parse(httpRequest.url, true).query;
     console.log("[INF0] Received parameters:", JSON.stringify(params));
 
+    params[REPORT_FILE] = params[REPORT_FILE] || "build/reports/jacoco/test/html/index.html";
+
     if(params[AUTHOR] && params[PROJECT] && params[CIRCLE_TOKEN]) {
         var latest_build_url = CIRCLE_CI_URL + "/" + params[AUTHOR] + "/" + params[PROJECT] + "/tree/master/?" + CIRCLE_TOKEN + "=" + params[CIRCLE_TOKEN] + "&limit=1&filter=successful";
 
@@ -111,13 +117,20 @@ dispatcher.onGet("/report", function(httpRequest, httpResponse) {
 });
 
 function getReport(build, callback) {
-    processArtifact("html/index.html", build, function(artifact) {
+    processArtifact(params[REPORT_FILE], build, function(artifact) {
         callback(artifact.url);
     });
 }
 
 function getBadge(type, build, callback) {
-    processArtifact("jacocoTestReport.xml", build, function(artifact) {
+    processArtifact(params[COVERAGE_FILE], build, function(artifact) {
+        if(artifact === null) {
+            callback({
+                image: generateBadge("", {}, true),
+                stopTime: new Date().toUTCString()
+            });
+        }
+
         request({
             url: artifact.url + "?" + CIRCLE_TOKEN + "=" + params[CIRCLE_TOKEN]
         }, function(error, response, body) {
@@ -137,22 +150,29 @@ function getBadge(type, build, callback) {
     });
 }
 
-function processArtifact(artifactName, build, callback) {
+function processArtifact(artifactFile, build, callback) {
     var artifact_url = CIRCLE_CI_URL + "/" + params[AUTHOR] + "/" + params[PROJECT] + "/" + build.build_num + "/artifacts?" + CIRCLE_TOKEN + "=" + params[CIRCLE_TOKEN];
     request({
         url: artifact_url,
         json: true
     }, function(error, response, artifacts) {
         if(!error && response.statusCode === 200) {
-            var artifact = null
-            artifacts.some(function(_artifact) {
-                var match = _artifact.path.indexOf(artifactName) >= 0;
-                if(match) {
-                   artifact = _artifact;
-                }
+            var artifact = null;
+            if(artifacts.length > 0) {
+                var rootArtifactsUrl = null;
+                if(artifacts.some(function(_artifact) {
+                    var match = /https?:\/\/.*?[0-9]\/home\/[^\/]+\//.test(_artifact.url);
+                    if(match) {
+                        rootArtifactsUrl = _artifact.url.match(/https?:\/\/.*?[0-9]\/home\/[^\/]+\//)[0];
+                    }
 
-                return match;
-            });
+                    return match;
+                })) {
+                    artifact = {
+                        url: rootArtifactsUrl + params[PROJECT] + "/" + artifactFile
+                    };
+                }
+            }
 
             callback(artifact);
         }

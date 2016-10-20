@@ -57,6 +57,7 @@ function getRequestHandler(httpRequest, httpResponse, badgeType) {
 
     params[COVERAGE_FILE] = params[COVERAGE_FILE] || "build/reports/jacoco/test/jacocoTestReport.xml";
 
+    console.log("[INFO] Retrieving latest build");
     if(params[AUTHOR] && params[PROJECT] && params[CIRCLE_TOKEN]) {
         var latest_build_url = CIRCLE_CI_URL + "/" + params[AUTHOR] + "/" + params[PROJECT] + "/tree/master/?" + CIRCLE_TOKEN + "=" + params[CIRCLE_TOKEN] + "&limit=1&filter=successful";
 
@@ -64,8 +65,10 @@ function getRequestHandler(httpRequest, httpResponse, badgeType) {
             url: latest_build_url,
             json: true
         }, function(error, response, builds) {
+            console.log("[INFO] Retrieved latest build");
             if(!error && response.statusCode === 200) {
                 getBadge(badgeType, builds[0], function(badge) {
+                    console.log("[INFO] Writing out badge");
                     httpResponse.writeHead(200, {
                         'Content-Type': 'image/png',
                         'Cache-Control': 'no-cache',
@@ -131,11 +134,16 @@ function getBadge(type, build, callback) {
             });
         }
 
+        console.log("[INFO] Retrieving coverage XML");
         request({
             url: artifact.url + "?" + CIRCLE_TOKEN + "=" + params[CIRCLE_TOKEN]
         }, function(error, response, body) {
+            console.log("[INFO] Retrieved coverage XML");
+            console.log("[INFO] Processing coverage XML");
+
             xml2js.parseString(body, function(err, result) {
-                console.log(JSON.stringify(result.report.counter));
+                console.log("[INFO] Processed coverage XML");
+
                 var counters = {};
                 result.report.counter.forEach(function(element) {
                     counters[element.$.type] = element.$;
@@ -152,11 +160,13 @@ function getBadge(type, build, callback) {
 
 function processArtifact(artifactFile, build, callback) {
     var artifact_url = CIRCLE_CI_URL + "/" + params[AUTHOR] + "/" + params[PROJECT] + "/" + build.build_num + "/artifacts?" + CIRCLE_TOKEN + "=" + params[CIRCLE_TOKEN];
+    console.log("[INFO] Retrieving build artifacts");
     request({
         url: artifact_url,
         json: true
     }, function(error, response, artifacts) {
         if(!error && response.statusCode === 200) {
+            console.log("[INFO] Retrieved build artifacts");
             var artifact = null;
             if(artifacts.length > 0) {
                 var rootArtifactsUrl = null;

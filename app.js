@@ -16,13 +16,24 @@ const REPORT_FILE = "report-file";
 const TYPE = "type";
 
 var params = null;
+var startTime;
+
+function info(message) {
+    console.log("[INFO][+" + ((new Date().getTime() - startTime) / 1000) + "s]", message);
+}
+
+function error(message) {
+    console.log("[ERROR][+" + ((new Date().getTime() - startTime) / 1000) + "s]", message);
+}
 
 function handleRequest(httpRequest, httpResponse) {
+    startTime = new Date().getTime();
+
     try {
-        console.log("[INFO]", httpRequest.url, "from", httpRequest.headers.referer);
+        info("Received request: " + httpRequest.url);
         dispatcher.dispatch(httpRequest, httpResponse);
     } catch(err) {
-        console.log("[ERROR]", err);
+        error(err);
 
         var badge = generateBadge("", {}, true);
         httpResponse.writeHead(500, {
@@ -53,11 +64,11 @@ dispatcher.onGet("/complexity", function(httpRequest, httpResponse) {
 
 function getRequestHandler(httpRequest, httpResponse, badgeType) {
     params = url.parse(httpRequest.url, true).query;
-    console.log("[INF0] Received parameters:", JSON.stringify(params));
+    info("Received parameters:" + JSON.stringify(params));
 
     params[COVERAGE_FILE] = params[COVERAGE_FILE] || "build/reports/jacoco/test/jacocoTestReport.xml";
 
-    console.log("[INFO] Retrieving latest build");
+    info("Retrieving latest build");
     if(params[AUTHOR] && params[PROJECT] && params[CIRCLE_TOKEN]) {
         var latest_build_url = CIRCLE_CI_URL + "/" + params[AUTHOR] + "/" + params[PROJECT] + "/tree/master/?" + CIRCLE_TOKEN + "=" + params[CIRCLE_TOKEN] + "&limit=1&filter=successful";
 
@@ -65,10 +76,10 @@ function getRequestHandler(httpRequest, httpResponse, badgeType) {
             url: latest_build_url,
             json: true
         }, function(error, response, builds) {
-            console.log("[INFO] Retrieved latest build");
+            info("Retrieved latest build");
             if(!error && response.statusCode === 200) {
                 getBadge(badgeType, builds[0], function(badge) {
-                    console.log("[INFO] Writing out badge");
+                    info("Writing out badge");
                     httpResponse.writeHead(200, {
                         'Content-Type': 'image/png',
                         'Cache-Control': 'no-cache',
@@ -78,7 +89,7 @@ function getRequestHandler(httpRequest, httpResponse, badgeType) {
                     httpResponse.end(badge.image, "binary");
                 });
             } else {
-                console.log("[ERROR] Unable to retrieve coverage-artifact from CircleCI; status=" + response.statusCode + ", message=" + response.body.message);
+                info("[ERROR] Unable to retrieve coverage-artifact from CircleCI; status=" + response.statusCode + ", message=" + response.body.message);
                 var badge = generateBadge("", {}, true);
                 httpResponse.writeHead(400, {
                     'Content-Type': 'image/png',
@@ -94,7 +105,7 @@ function getRequestHandler(httpRequest, httpResponse, badgeType) {
 
 dispatcher.onGet("/report", function(httpRequest, httpResponse) {
     params = url.parse(httpRequest.url, true).query;
-    console.log("[INF0] Received parameters:", JSON.stringify(params));
+    info("[INF0] Received parameters:" + JSON.stringify(params));
 
     params[REPORT_FILE] = params[REPORT_FILE] || "build/reports/jacoco/test/html/index.html";
 
@@ -134,15 +145,15 @@ function getBadge(type, build, callback) {
             });
         }
 
-        console.log("[INFO] Retrieving coverage XML");
+        info("Retrieving coverage XML");
         request({
             url: artifact.url + "?" + CIRCLE_TOKEN + "=" + params[CIRCLE_TOKEN]
         }, function(error, response, body) {
-            console.log("[INFO] Retrieved coverage XML");
-            console.log("[INFO] Processing coverage XML");
+            info("Retrieved coverage XML");
+            info("Processing coverage XML");
 
             xml2js.parseString(body, function(err, result) {
-                console.log("[INFO] Processed coverage XML");
+                info("Processed coverage XML");
 
                 var counters = {};
                 result.report.counter.forEach(function(element) {
@@ -160,13 +171,13 @@ function getBadge(type, build, callback) {
 
 function processArtifact(artifactFile, build, callback) {
     var artifact_url = CIRCLE_CI_URL + "/" + params[AUTHOR] + "/" + params[PROJECT] + "/" + build.build_num + "/artifacts?" + CIRCLE_TOKEN + "=" + params[CIRCLE_TOKEN];
-    console.log("[INFO] Retrieving build artifacts");
+    info("Retrieving build artifacts");
     request({
         url: artifact_url,
         json: true
     }, function(error, response, artifacts) {
         if(!error && response.statusCode === 200) {
-            console.log("[INFO] Retrieved build artifacts");
+            info("Retrieved build artifacts");
             var artifact = null;
             if(artifacts.length > 0) {
                 var rootArtifactsUrl = null;
@@ -193,7 +204,7 @@ function generateBadge(type, counters, error) {
     type = (type === "line") ? "INSTRUCTION" : (type === "branch") ? "BRANCH" : (type === "complexity") ? "COMPLEXITY": "INSTRUCTION";
     error = typeof counters[type] === "undefined";
     if(typeof counters[type] === "undefined") {
-        console.log("[ERROR] Could not find any coverage information in artifacts");
+        error("Could not find any coverage information in artifacts");
     }
 
     var diff = (type === "INSTRUCTION" || type == "BRANCH") ? 0 : (type === "COMPLEXITY") ? 10 : 0;
@@ -304,6 +315,6 @@ function generateBadge(type, counters, error) {
 
 var server = http.createServer(handleRequest);
 
-server.listen(PORT, function(){
+server.listen(PORT, function() {
     console.log("Server listening on port", PORT);
 });

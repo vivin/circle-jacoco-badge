@@ -214,11 +214,6 @@ function generateBadge(type, counters, error) {
     var height = 18;
     var radius = 10;
 
-    var canvas = new Canvas(width, height);
-    var context = canvas.getContext('2d');
-
-    context.antialias = "subpixel";
-
     var metric = error ? "!!!" : "";
     var coverageType = "";
     var color = error ? "red" : "green";
@@ -261,9 +256,15 @@ function generateBadge(type, counters, error) {
         }
     }
 
-    if(metric == 100) {
+    if(metric === "100%") {
         width += 5;
+        textX += 5;
     }
+
+    var canvas = new Canvas(width, height);
+    var context = canvas.getContext('2d');
+
+    context.antialias = "subpixel";
 
     context.beginPath();
     context.strokeStyle = "#555555";

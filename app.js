@@ -285,7 +285,7 @@ function generateBadge(type, counters, error) {
     context.strokeStyle = color;
     context.fillStyle = color;
 
-    var metricRegionStartX = error || (metric < 100) ? 60 : 58;
+    var metricRegionStartX = error || (metric < 100) ? 60 : 50;
 
     context.strokeRect(metricRegionStartX + diff + (radius / 2), radius/2, width - radius - (metricRegionStartX + diff), height - radius);
     context.fillRect(metricRegionStartX + diff + (radius / 2), radius / 2, width - radius - (metricRegionStartX + diff), height - radius);

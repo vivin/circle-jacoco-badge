@@ -257,8 +257,7 @@ function generateBadge(type, counters, error) {
     }
 
     if(metric === "100%") {
-        width += 10;
-        textX -= 10;
+        width += 8;
     }
 
     var canvas = new Canvas(width, height);

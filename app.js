@@ -182,13 +182,13 @@ function processArtifact(artifactFile, build, callback) {
             if(artifacts.length > 0) {
                 var rootArtifactsUrl = null;
                 if(artifacts.some(function(_artifact) {
-                    var match = /https?:\/\/.*?[0-9]\/home\/[^\/]+\//.test(_artifact.url);
-                    if(match) {
-                        rootArtifactsUrl = _artifact.url.match(/https?:\/\/.*?[0-9]\/home\/[^\/]+\//)[0];
-                    }
+                        var match = /https?:\/\/.*?[0-9]\/home\/[^\/]+\//.test(_artifact.url);
+                        if(match) {
+                            rootArtifactsUrl = _artifact.url.match(/https?:\/\/.*?[0-9]\/home\/[^\/]+\//)[0];
+                        }
 
-                    return match;
-                })) {
+                        return match;
+                    })) {
                     artifact = {
                         url: rootArtifactsUrl + params[PROJECT] + "/" + artifactFile
                     };
@@ -261,6 +261,10 @@ function generateBadge(type, counters, error) {
         }
     }
 
+    if(metric == 100) {
+        width += 5;
+    }
+
     context.beginPath();
     context.strokeStyle = "#555555";
     context.fillStyle = "#555555";
@@ -285,14 +289,12 @@ function generateBadge(type, counters, error) {
     context.strokeStyle = color;
     context.fillStyle = color;
 
-    var metricRegionStartX = error || (metric < 100) ? 60 : 50;
-
-    context.strokeRect(metricRegionStartX + diff + (radius / 2), radius/2, width - radius - (metricRegionStartX + diff), height - radius);
-    context.fillRect(metricRegionStartX + diff + (radius / 2), radius / 2, width - radius - (metricRegionStartX + diff), height - radius);
+    context.strokeRect(60 + diff + (radius / 2), radius/2, width - radius - (60 + diff), height - radius);
+    context.fillRect(60 + diff + (radius / 2), radius / 2, width - radius - (60 + diff), height - radius);
 
     context.lineJoin = "miter";
-    context.moveTo(metricRegionStartX + diff + (radius / 2), 0);
-    context.lineTo(metricRegionStartX + diff + (radius / 2), height);
+    context.moveTo(60 + diff + (radius / 2), 0);
+    context.lineTo(60 + diff + (radius / 2), height);
     context.stroke();
     context.closePath();
 
@@ -306,10 +308,10 @@ function generateBadge(type, counters, error) {
 
     if(!error) {
         context.font = "600 7.5pt sans-serif";
-        context.fillText(metric, (metricRegionStartX + 2) + ((10 - diff) / 10) + diff, 12.5);
+        context.fillText(metric, 62 + ((10 - diff) / 10) + diff, 12.5);
     } else {
         context.font = "bold 7.5pt sans-serif";
-        context.fillText("??%", (metricRegionStartX + 2) + ((10 - diff) / 10) + diff, 12.5);
+        context.fillText("??%", 62 + ((10 - diff) / 10) + diff, 12.5);
     }
 
     return canvas.toBuffer();
@@ -320,3 +322,4 @@ var server = http.createServer(handleRequest);
 server.listen(PORT, function() {
     console.log("Server listening on port", PORT);
 });
+

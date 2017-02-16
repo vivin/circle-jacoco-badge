@@ -285,12 +285,14 @@ function generateBadge(type, counters, error) {
     context.strokeStyle = color;
     context.fillStyle = color;
 
-    context.strokeRect(60 + diff + (radius / 2), radius/2, width - radius - (60 + diff), height - radius);
-    context.fillRect(60 + diff + (radius / 2), radius / 2, width - radius - (60 + diff), height - radius);
+    var metricRegionStartX = error || (metric < 100) ? 60 : 58;
+
+    context.strokeRect(metricRegionStartX + diff + (radius / 2), radius/2, width - radius - (metricRegionStartX + diff), height - radius);
+    context.fillRect(metricRegionStartX + diff + (radius / 2), radius / 2, width - radius - (metricRegionStartX + diff), height - radius);
 
     context.lineJoin = "miter";
-    context.moveTo(60 + diff + (radius / 2), 0);
-    context.lineTo(60 + diff + (radius / 2), height);
+    context.moveTo(metricRegionStartX + diff + (radius / 2), 0);
+    context.lineTo(metricRegionStartX + diff + (radius / 2), height);
     context.stroke();
     context.closePath();
 
@@ -304,10 +306,10 @@ function generateBadge(type, counters, error) {
 
     if(!error) {
         context.font = "600 7.5pt sans-serif";
-        context.fillText(metric, 62 + ((10 - diff) / 10) + diff, 12.5);
+        context.fillText(metric, (metricRegionStartX + 2) + ((10 - diff) / 10) + diff, 12.5);
     } else {
         context.font = "bold 7.5pt sans-serif";
-        context.fillText("??%", 62 + ((10 - diff) / 10) + diff, 12.5);
+        context.fillText("??%", (metricRegionStartX + 2) + ((10 - diff) / 10) + diff, 12.5);
     }
 
     return canvas.toBuffer();

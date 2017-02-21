@@ -201,14 +201,14 @@ function processArtifact(artifactFile, build, callback) {
 }
 
 function generateBadge(type, counters, error) {
-    type = (type === "line") ? "INSTRUCTION" : (type === "branch") ? "BRANCH" : (type === "complexity") ? "COMPLEXITY": "INSTRUCTION";
+    type = (type === "line") ? "LINE" : (type === "branch") ? "BRANCH" : (type === "complexity") ? "COMPLEXITY": "LINE";
     error = typeof counters[type] === "undefined";
     if(typeof counters[type] === "undefined") {
         error("Could not find any coverage information in artifacts");
     }
 
-    var diff = (type === "INSTRUCTION" || type == "BRANCH") ? 0 : (type === "COMPLEXITY") ? 10 : 0;
-    var textX = (type === "INSTRUCTION") ? 3.5 : (type === "BRANCH") ? 10.5 : (type === "COMPLEXITY") ? 4.5 : 3.5;
+    var diff = (type === "LINE" || type == "BRANCH") ? 0 : (type === "COMPLEXITY") ? 10 : 0;
+    var textX = (type === "LINE") ? 3.5 : (type === "BRANCH") ? 10.5 : (type === "COMPLEXITY") ? 4.5 : 3.5;
 
     var width = 90 + diff;
     var height = 18;
@@ -218,8 +218,8 @@ function generateBadge(type, counters, error) {
     var coverageType = "";
     var color = error ? "red" : "green";
     if(!error) {
-        if(type === "INSTRUCTION" || type === "BRANCH") {
-            coverageType = (type === "INSTRUCTION") ? "coverage" : "branch";
+        if(type === "LINE" || type === "BRANCH") {
+            coverageType = (type === "LINE") ? "coverage" : "branch";
             var covered = parseInt(counters[type].covered, 10);
             var missed = parseInt(counters[type].missed, 10);
 

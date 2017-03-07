@@ -200,9 +200,9 @@ function processArtifact(artifactFile, build, callback) {
     });
 }
 
-function generateBadge(type, counters, error) {
+function generateBadge(type, counters, err) {
     type = (type === "line") ? "LINE" : (type === "branch") ? "BRANCH" : (type === "complexity") ? "COMPLEXITY": "LINE";
-    error = typeof counters[type] === "undefined";
+    err = typeof counters[type] === "undefined";
     if(typeof counters[type] === "undefined") {
         error("Could not find any coverage information in artifacts");
     }
@@ -214,10 +214,10 @@ function generateBadge(type, counters, error) {
     var height = 18;
     var radius = 10;
 
-    var metric = error ? "!!!" : "";
+    var metric = err ? "!!!" : "";
     var coverageType = "";
-    var color = error ? "red" : "green";
-    if(!error) {
+    var color = err ? "red" : "green";
+    if(!err) {
         if(type === "LINE" || type === "BRANCH") {
             coverageType = (type === "LINE") ? "coverage" : "branch";
             var covered = parseInt(counters[type].covered, 10);
@@ -306,7 +306,7 @@ function generateBadge(type, counters, error) {
     context.font = "600 7.5pt sans-serif";
     context.fillText(coverageType, textX, 12);
 
-    if(!error) {
+    if(!err) {
         context.font = "600 7.5pt sans-serif";
         context.fillText(metric, 62 + ((10 - diff) / 10) + diff, 12.5);
     } else {

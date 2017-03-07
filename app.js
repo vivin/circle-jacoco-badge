@@ -143,29 +143,29 @@ function getBadge(type, build, callback) {
                 image: generateBadge("", {}, true),
                 stopTime: new Date().toUTCString()
             });
-        }
+        } else {
+            info("Retrieving coverage XML");
+            request({
+                url: artifact.url + "?" + CIRCLE_TOKEN + "=" + params[CIRCLE_TOKEN]
+            }, function(error, response, body) {
+                info("Retrieved coverage XML");
+                info("Processing coverage XML");
 
-        info("Retrieving coverage XML");
-        request({
-            url: artifact.url + "?" + CIRCLE_TOKEN + "=" + params[CIRCLE_TOKEN]
-        }, function(error, response, body) {
-            info("Retrieved coverage XML");
-            info("Processing coverage XML");
+                xml2js.parseString(body, function(err, result) {
+                    info("Processed coverage XML");
 
-            xml2js.parseString(body, function(err, result) {
-                info("Processed coverage XML");
+                    var counters = {};
+                    result.report.counter.forEach(function(element) {
+                        counters[element.$.type] = element.$;
+                    });
 
-                var counters = {};
-                result.report.counter.forEach(function(element) {
-                    counters[element.$.type] = element.$;
-                });
-
-                callback({
-                    image: generateBadge(type, counters, false),
-                    stopTime: build.stop_time
+                    callback({
+                        image: generateBadge(type, counters, false),
+                        stopTime: build.stop_time
+                    });
                 });
             });
-        });
+        }
     });
 }
 

@@ -1,4 +1,4 @@
-#circle-jacoco-badge
+# circle-jacoco-badge
 
 Lets you render coverage badges using JaCoCo coverage information from its XML report. A few things are required to set it up.
 
